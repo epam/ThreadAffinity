@@ -1,0 +1,83 @@
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+
+apply from: "$rootDir/gradle/release.gradle"
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'net.openhft:affinity:3.1.13'
+    compile 'org.slf4j:slf4j-api:1.7.14'
+    compileOnly 'com.google.code.findbugs:jsr305:3.0.1'
+
+    testCompile 'junit:junit:4.+'
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+publishing {
+    repositories {
+        maven {
+            url System.getenv('MAVEN_REPOSITORY')
+
+            credentials {
+                username System.getenv('MAVEN_USERNAME')
+                password System.getenv('MAVEN_PASSWORD')
+            }
+        }
+    }
+
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+
+            pom {
+                name = 'thread.affinity'
+                packaging = 'jar'
+                description = 'High efficient garbage free logging framework for Java 8+'
+                url = 'https://github.com/epam/Thread.Affinity'
+
+                scm {
+                    connection = 'scm:git:https://github.com/epam/Thread.Affinity.git'
+                    developerConnection = 'scm:git:https://github.com/epam/Thread.Affinity.git'
+                    url = 'https://github.com/epam/Thread.Affinity.git'
+                }
+
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'yauhenipisarchyk'
+                        name = 'Yauheni Pisarchyk'
+                        email = 'yauheni_pisarchyk1@epam.com'
+                        url = 'https://github.com/Sateviss'
+                        organization = 'EPAM Systems'
+                        organizationUrl = 'https://www.epam.com/'
+                    }
+                }
+            }
+        }
+    }
+}
+
+wrapper {
+    gradleVersion = '5.4.1'
+    distributionType = Wrapper.DistributionType.BIN
+}
