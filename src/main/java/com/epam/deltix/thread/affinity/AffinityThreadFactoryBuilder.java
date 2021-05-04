@@ -29,6 +29,7 @@ public final class AffinityThreadFactoryBuilder {
 
     /**
      * Creates a new {@link ThreadFactory} builder.
+     * @param affinityConfig configuration
      */
     public AffinityThreadFactoryBuilder(@Nullable AffinityConfig affinityConfig) {
         this.affinityConfig = affinityConfig;
