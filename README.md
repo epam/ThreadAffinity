@@ -1,6 +1,6 @@
 # Thread Affinity Wrapper
 
-A wrapper over net.openhft:affinity providing handy classes to create threads pinned to the specified cpus.
+A wrapper over net.openhft:affinity providing handy classes to create threads pinned to the specified CPUs.
 
 ## Use
 
