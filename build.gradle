@@ -1,5 +1,6 @@
 apply plugin: 'java'
 apply plugin: 'maven-publish'
+apply plugin: 'signing'
 
 apply from: "$rootDir/gradle/release.gradle"
 
@@ -18,23 +19,24 @@ dependencies {
     testCompile 'junit:junit:4.+'
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
+ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
-artifacts {
-    archives sourcesJar
-}
+def rUser = findProperty('SONATYPE_NEXUS_USERNAME') ?:  System.getenv('SONATYPE_NEXUS_USERNAME') ?: "FakeUser"
+def rPass = findProperty('SONATYPE_NEXUS_PASSWORD') ?:  System.getenv('SONATYPE_NEXUS_PASSWORD') ?: "FakePass"
 
 publishing {
     repositories {
         maven {
-            url System.getenv('MAVEN_REPOSITORY')
+            url = findProperty('SONATYPE_REPOSITORY') ?:  System.getenv('SONATYPE_REPOSITORY') ?: "FakeRepo"
 
             credentials {
-                username System.getenv('MAVEN_USERNAME')
-                password System.getenv('MAVEN_PASSWORD')
+                username rUser
+                password rPass
             }
         }
     }
@@ -46,13 +48,13 @@ publishing {
             pom {
                 name = 'thread.affinity'
                 packaging = 'jar'
-                description = 'High efficient garbage free logging framework for Java 8+'
-                url = 'https://github.com/epam/Thread.Affinity'
+                description = 'A wrapper over net.openhft:affinity providing handy classes to create threads pinned to the specified CPUs.'
+                url = 'https://github.com/epam/ThreadAffinity'
 
                 scm {
-                    connection = 'scm:git:https://github.com/epam/Thread.Affinity.git'
-                    developerConnection = 'scm:git:https://github.com/epam/Thread.Affinity.git'
-                    url = 'https://github.com/epam/Thread.Affinity.git'
+                    connection = 'scm:git:https://github.com/epam/ThreadAffinity.git'
+                    developerConnection = 'scm:git:https://github.com/epam/ThreadAffinity.git'
+                    url = 'https://github.com/epam/ThreadAffinity.git'
                 }
 
                 licenses {
@@ -64,10 +66,10 @@ publishing {
 
                 developers {
                     developer {
-                        id = 'yauhenipisarchyk'
-                        name = 'Yauheni Pisarchyk'
-                        email = 'yauheni_pisarchyk1@epam.com'
-                        url = 'https://github.com/Sateviss'
+                        id = 'artsiomkorzun'
+                        name = 'Artsiom Korzun'
+                        email = 'humanfault101@gmail.com'
+                        url = 'https://github.com/artsiomkorzun'
                         organization = 'EPAM Systems'
                         organizationUrl = 'https://www.epam.com/'
                     }
@@ -75,6 +77,16 @@ publishing {
             }
         }
     }
+}
+
+signing {
+    def signingKey = findProperty('SIGNING_PRIVATE_KEY') ?: System.getenv('SIGNING_PRIVATE_KEY') ?: "FakeUser"
+    def signingPassword = findProperty('SIGNING_PASSWORD') ?: System.getenv('SIGNING_PASSWORD') ?: "FakePass"
+
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign publishing.publications.mavenJava
+
+    required { isReleaseVersion }
 }
 
 wrapper {
